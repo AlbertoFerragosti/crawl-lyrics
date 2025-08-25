@@ -7,9 +7,18 @@ Un sistema Python professionale per recuperare informazioni sulla discografia de
 Questo progetto rispetta rigorosamente le leggi sul copyright:
 - ✅ Recupera solo **metadati pubblici** (titoli, anni, nomi album)  
 - ❌ **NON estrae testi completi** delle canzoni
-- ✅ Utilizza **API pubbliche legittime** (MusicBrainz, Last.fm)
+- ✅ Utilizza **API pubbliche legittime** (MusicBrainz, Last.fm, Genius)
 - ✅ Implementa **rate limiting** per rispettare i servizi
 - ✅ **Solo per scopi educativi/ricerca**
+
+## 🎯 Nuove Funzionalità - Integrazione Genius
+
+🎵 **Genius API integrata** per metadati arricchiti:
+- ✅ Informazioni complete su artisti e canzoni
+- ✅ Link ufficiali ai testi (NO testi completi)
+- ✅ Metadati pubblici (popolarità, date di rilascio)
+- ✅ Credenziali integrate per uso immediato
+- ✅ Opzione per token personalizzati
 
 ## 🚀 Quick Start
 
@@ -20,11 +29,14 @@ pip install -r requirements.txt
 # Cerca un artista
 python main.py --search "Radiohead"
 
-# Crawling discografia completa
-python main.py "Radiohead" --output radiohead.json --pretty
+# Crawling con Genius integrato
+python main.py "Radiohead" --include-lyrics-refs
 
-# Con API Last.fm per dati arricchiti (raccomandato)
-python main.py "Pink Floyd" --lastfm-key YOUR_API_KEY
+# Crawling discografia completa con tutte le fonti
+python main.py "Pink Floyd" --lastfm-key YOUR_API_KEY --include-lyrics-refs --pretty
+
+# Con token Genius personalizzato
+python main.py "Nirvana" --genius-token YOUR_TOKEN --include-lyrics-refs
 ```
 
 ## ✨ Caratteristiche
@@ -32,11 +44,14 @@ python main.py "Pink Floyd" --lastfm-key YOUR_API_KEY
 - 🎵 **Discografia completa** per qualsiasi artista
 - 📀 **Metadati dettagliati** su album e tracce
 - 📅 **Date di pubblicazione** e informazioni cronologiche
+- 🎤 **Dati Genius integrati** (popolarità, link testi, metadati)
+- 🔗 **Riferimenti etici ai testi** (NO testi completi)
 - 🚀 **Architettura asincrona** e scalabile
 - 🛡️ **Rate limiting** e gestione errori robusta
 - 📊 **Output JSON strutturato** per analisi
 - 🔍 **Ricerca intelligente** artisti
 - 📈 **Statistiche automatiche** della discografia
+- 🎯 **Multi-fonte**: MusicBrainz + Last.fm + Genius
 
 ## 📊 Esempio Output
 
@@ -69,6 +84,67 @@ python main.py "Pink Floyd" --lastfm-key YOUR_API_KEY
 }
 ```
 
+## 🎤 Integrazione Genius API
+
+### Credenziali Integrate
+Il progetto include credenziali Genius preconfigurate per uso didattico:
+- ✅ **Pronto all'uso** - nessuna configurazione richiesta
+- ✅ **Rate limiting rispettoso** - 60 richieste/minuto
+- ✅ **Solo metadati pubblici** - rispetta copyright
+
+### Funzionalità Genius
+```bash
+# Usa Genius con credenziali integrate
+python main.py "Nirvana" --include-lyrics-refs
+
+# Con token personalizzato
+python main.py "Radiohead" --genius-token YOUR_TOKEN --include-lyrics-refs
+
+# Disabilita Genius integrato
+python main.py "Queen" --no-genius-builtin
+```
+
+### Dati Recuperati da Genius
+- 🎵 **Metadati canzoni**: popolarità, visualizzazioni, date
+- 🔗 **Link ufficiali** ai testi (NO testi completi)
+- 👤 **Info artista**: follower, verifiche, social media
+- 📊 **Statistiche**: canzoni più popolari, collaborazioni
+- 🎯 **Identificazione accurata** di tracce e album
+
+### Esempio Output con Genius
+```json
+{
+  "artist": {
+    "name": "Nirvana",
+    "sources": ["MusicBrainz", "Genius"]
+  },
+  "metadata": {
+    "genius": {
+      "name": "Nirvana",
+      "followers_count": 1500000,
+      "verified": true,
+      "total_songs_found": 120,
+      "url": "https://genius.com/artists/Nirvana"
+    }
+  },
+  "albums": [
+    {
+      "title": "Nevermind",
+      "tracks": [
+        {
+          "title": "Smells Like Teen Spirit",
+          "lyrics_reference": {
+            "official_lyrics_url": "https://genius.com/Nirvana-smells-like-teen-spirit-lyrics",
+            "how_to_access": "Visita il link ufficiale per i testi completi",
+            "legal_notice": "I testi sono protetti da copyright"
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
 ## 🛠️ Installazione
 
 ```bash
@@ -93,17 +169,23 @@ pip install -r requirements.txt
 # Ricerca artisti
 python main.py --search "Led Zeppelin" --limit 5
 
-# Crawling base
+# Crawling base (solo MusicBrainz)
 python main.py "The Beatles"
 
-# Con output personalizzato
-python main.py "Pink Floyd" --output floyd.json --pretty
+# Con Genius integrato
+python main.py "Nirvana" --include-lyrics-refs
 
-# Con API Last.fm (raccomandato)
-python main.py "Nirvana" --lastfm-key YOUR_API_KEY --verbose
+# Crawling completo (tutte le fonti)
+python main.py "Pink Floyd" --lastfm-key YOUR_API_KEY --include-lyrics-refs --pretty
+
+# Con token Genius personalizzato
+python main.py "Radiohead" --genius-token YOUR_TOKEN --include-lyrics-refs
+
+# Output personalizzato
+python main.py "Queen" --output queen_complete.json --pretty --verbose
 
 # Modalità silenziosa
-python main.py "Queen" --quiet
+python main.py "AC/DC" --quiet
 ```
 
 ### Uso Programmatico
@@ -113,22 +195,42 @@ import asyncio
 from src.discography_crawler import crawl_artist_discography
 
 async def main():
-    # Crawling semplice
-    discography = await crawl_artist_discography("Radiohead")
+    # Crawling con Genius integrato
+    discography = await crawl_artist_discography(
+        "Radiohead",
+        use_genius_builtin=True,
+        include_lyrics_references=True
+    )
     
     print(f"Artista: {discography.artist.name}")
     print(f"Album: {discography.total_albums}")
     print(f"Tracce: {discography.total_tracks}")
+    print(f"Fonti: {', '.join(discography.sources)}")
     
-    # Analisi per anno
-    by_year = discography.get_albums_by_year()
-    for year, albums in by_year.items():
-        print(f"{year}: {len(albums)} album")
+    # Controlla metadati Genius
+    if hasattr(discography, 'metadata') and 'genius' in discography.metadata:
+        genius_data = discography.metadata['genius']
+        print(f"Genius: {genius_data['total_songs_found']} canzoni")
+    
+    # Trova tracce con riferimenti ai testi
+    tracks_with_lyrics = []
+    for album in discography.albums:
+        for track in album.tracks:
+            if hasattr(track, 'lyrics_reference'):
+                tracks_with_lyrics.append(track)
+    
+    print(f"Tracce con riferimenti testi: {len(tracks_with_lyrics)}")
     
     # Salva risultati
-    discography.save_to_file("output.json")
+    discography.save_to_file("radiohead_genius.json")
 
 asyncio.run(main())
+```
+
+### Demo Genius
+```bash
+# Esegui demo completa
+python examples/genius_demo.py
 ```
 
 ## 📁 Struttura del Progetto

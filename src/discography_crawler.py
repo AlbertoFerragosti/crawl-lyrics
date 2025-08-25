@@ -11,6 +11,8 @@ from datetime import datetime
 from .models.discography import Artist, Album, Track, Discography, CrawlStatus
 from .services.musicbrainz_client import MusicBrainzClient
 from .services.lastfm_client import LastFmClient
+from .services.lyrics_metadata_client import LyricsMetadataClient, LYRICS_DISCLAIMER
+from .services.genius_client import GeniusClient, GENIUS_CONFIG
 from .crawlers.base_crawler import BaseCrawler, CrawlerError
 
 # Configurazione logging
@@ -23,6 +25,9 @@ class DiscographyCrawler(BaseCrawler):
     
     def __init__(self, 
                  lastfm_api_key: Optional[str] = None,
+                 genius_token: Optional[str] = None,
+                 use_genius_builtin: bool = True,
+                 enable_lyrics_references: bool = False,
                  rate_limit_requests: int = 5,
                  rate_limit_window: int = 60,
                  max_retries: int = 3):
@@ -31,6 +36,9 @@ class DiscographyCrawler(BaseCrawler):
         
         Args:
             lastfm_api_key: Chiave API Last.fm (opzionale)
+            genius_token: Token API Genius personalizzato (opzionale)
+            use_genius_builtin: Usa le credenziali Genius integrate
+            enable_lyrics_references: Abilita riferimenti ETICI ai testi (NO testi completi)
             rate_limit_requests: Richieste massime per finestra temporale
             rate_limit_window: Finestra temporale in secondi
             max_retries: Numero massimo di retry
@@ -39,7 +47,33 @@ class DiscographyCrawler(BaseCrawler):
         
         self.musicbrainz_client = MusicBrainzClient()
         self.lastfm_api_key = lastfm_api_key
+        
+        # Configurazione Genius
+        if use_genius_builtin:
+            self.genius_config = GENIUS_CONFIG
+            self.has_genius = True
+        elif genius_token:
+            self.genius_config = {'access_token': genius_token}
+            self.has_genius = True
+        else:
+            self.genius_config = None
+            self.has_genius = False
+            
+        self.enable_lyrics_references = enable_lyrics_references and self.has_genius
         self.status: Optional[CrawlStatus] = None
+        
+        # Warning se lyrics sono abilitate
+        if self.enable_lyrics_references:
+            self.logger.warning("Riferimenti testi abilitati - Solo metadati etici, NO testi completi")
+            self.logger.info(LYRICS_DISCLAIMER)
+            
+        # Info sulle fonti disponibili
+        sources = ["MusicBrainz"]
+        if self.lastfm_api_key:
+            sources.append("Last.fm")
+        if self.has_genius:
+            sources.append("Genius")
+        self.logger.info(f"Fonti dati disponibili: {', '.join(sources)}")
     
     async def get_artist_discography(self, artist_name: str) -> Discography:
         """
@@ -81,14 +115,25 @@ class DiscographyCrawler(BaseCrawler):
             self.status.albums_found = len(mb_albums)
             self.logger.info(f"Trovati {len(mb_albums)} album su MusicBrainz")
             
-            # 3. Arricchisci con dati da Last.fm (se disponibile)
+            # 3. Cerca dati aggiuntivi su Genius (se disponibile)
+            genius_artist_data = None
+            if self.has_genius:
+                genius_artist_data = await self._get_genius_artist_data(primary_artist.name)
+                if genius_artist_data:
+                    self.logger.info(f"Dati Genius trovati: {genius_artist_data['total_songs_found']} canzoni")
+            
+            # 4. Arricchisci con dati da Last.fm (se disponibile)
             enhanced_albums = await self._enhance_with_lastfm(primary_artist, mb_albums)
             
-            # 4. Conta le tracce totali
+            # 5. Aggiungi riferimenti etici ai testi (se abilitato)
+            if self.enable_lyrics_references:
+                enhanced_albums = await self._add_lyrics_references(primary_artist, enhanced_albums)
+
+            # 6. Conta le tracce totali
             total_tracks = sum(len(album.tracks) for album in enhanced_albums)
             self.status.tracks_found = total_tracks
             
-            # 5. Crea la discografia finale
+            # 7. Crea la discografia finale
             discography = Discography(
                 artist=primary_artist,
                 albums=enhanced_albums,
@@ -97,6 +142,18 @@ class DiscographyCrawler(BaseCrawler):
             
             if self.lastfm_api_key:
                 discography.sources.append("Last.fm")
+            
+            if self.has_genius:
+                discography.sources.append("Genius")
+                # Aggiungi metadati Genius all'artista
+                if genius_artist_data:
+                    discography.metadata = {
+                        "genius": genius_artist_data,
+                        "genius_integration": "Dati aggiuntivi da Genius API"
+                    }
+            
+            if self.enable_lyrics_references:
+                discography.sources.append("Genius (lyrics metadata)")
             
             self.status.mark_completed()
             self.logger.info(f"Crawling completato: {total_tracks} tracce in {len(enhanced_albums)} album")
@@ -223,6 +280,102 @@ class DiscographyCrawler(BaseCrawler):
         
         return enhanced_tracks
     
+    async def _get_genius_artist_data(self, artist_name: str) -> Optional[Dict[str, Any]]:
+        """
+        Recupera dati dell'artista da Genius API.
+        
+        Args:
+            artist_name: Nome dell'artista
+            
+        Returns:
+            Dati dell'artista da Genius o None
+        """
+        if not self.has_genius:
+            return None
+            
+        try:
+            async with GeniusClient(
+                self.genius_config['client_id'],
+                self.genius_config['client_secret'], 
+                self.genius_config['access_token']
+            ) as genius_client:
+                
+                genius_data = await self.make_request(
+                    genius_client.get_comprehensive_artist_data,
+                    artist_name
+                )
+                
+                if genius_data:
+                    self.logger.info(f"Dati Genius recuperati per {artist_name}")
+                    return genius_data
+                else:
+                    self.logger.warning(f"Nessun dato Genius trovato per {artist_name}")
+                    
+        except Exception as e:
+            self.logger.error(f"Errore nel recupero dati Genius: {e}")
+            
+        return None
+    
+    async def _add_lyrics_references(self, artist: Artist, albums: List[Album]) -> List[Album]:
+        """
+        Aggiunge riferimenti ETICI ai testi (NO testi completi).
+        
+        Args:
+            artist: Artista di riferimento
+            albums: Lista degli album
+            
+        Returns:
+            Album con riferimenti ai testi
+        """
+        if not self.has_genius:
+            return albums
+        
+        self.logger.info("Aggiunta riferimenti etici ai testi (NO testi completi)")
+        enhanced_albums = []
+        
+        # Usa il token appropriato per il client legacy
+        genius_token = self.genius_config.get('access_token')
+        
+        async with LyricsMetadataClient(genius_token) as lyrics_client:
+            for album in albums:
+                enhanced_tracks = []
+                
+                for track in album.tracks:
+                    enhanced_track = track.copy(deep=True)
+                    
+                    try:
+                        # Cerca metadati ETICI (NO testi completi)
+                        metadata = await self.make_request(
+                            lyrics_client.search_song_metadata,
+                            track.title,
+                            artist.name
+                        )
+                        
+                        if metadata:
+                            # Crea riferimento LEGALE
+                            lyrics_ref = lyrics_client.create_legal_lyrics_reference(metadata)
+                            enhanced_track.lyrics_reference = lyrics_ref
+                            enhanced_track.genius_url = metadata.get('genius_url')
+                            
+                            self.logger.debug(f"Riferimento aggiunto per: {track.title}")
+                        
+                        # Pausa etica tra richieste
+                        await asyncio.sleep(0.5)
+                        
+                    except Exception as e:
+                        self.logger.warning(f"Errore nel riferimento per '{track.title}': {e}")
+                    
+                    enhanced_tracks.append(enhanced_track)
+                
+                # Copia album con tracce aggiornate
+                enhanced_album = album.copy(deep=True)
+                enhanced_album.tracks = enhanced_tracks
+                enhanced_albums.append(enhanced_album)
+                
+                self.logger.info(f"Riferimenti processati per album: {album.title}")
+        
+        return enhanced_albums
+    
     async def search_artists(self, query: str, limit: int = 10) -> List[Artist]:
         """
         Cerca artisti per nome.
@@ -270,16 +423,29 @@ class DiscographyCrawler(BaseCrawler):
 
 # Funzione di utilità per uso semplificato
 async def crawl_artist_discography(artist_name: str, 
-                                 lastfm_api_key: Optional[str] = None) -> Discography:
+                                 lastfm_api_key: Optional[str] = None,
+                                 genius_token: Optional[str] = None,
+                                 use_genius_builtin: bool = True,
+                                 include_lyrics_references: bool = False) -> Discography:
     """
     Funzione di utilità per il crawling rapido di una discografia.
     
     Args:
         artist_name: Nome dell'artista
         lastfm_api_key: Chiave API Last.fm (opzionale)
+        genius_token: Token API Genius personalizzato (opzionale)
+        use_genius_builtin: Usa le credenziali Genius integrate
+        include_lyrics_references: Include riferimenti ETICI ai testi (NO testi completi)
         
     Returns:
         Discografia dell'artista
     """
-    async with DiscographyCrawler(lastfm_api_key=lastfm_api_key) as crawler:
+    crawler_params = {
+        'lastfm_api_key': lastfm_api_key,
+        'genius_token': genius_token,
+        'use_genius_builtin': use_genius_builtin,
+        'enable_lyrics_references': include_lyrics_references
+    }
+    
+    async with DiscographyCrawler(**crawler_params) as crawler:
         return await crawler.crawl(artist_name)

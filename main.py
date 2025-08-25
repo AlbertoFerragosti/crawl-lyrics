@@ -69,6 +69,23 @@ Esempi di utilizzo:
     )
     
     parser.add_argument(
+        '--genius-token',
+        help='Token API Genius personalizzato per riferimenti ETICI ai testi (NO testi completi)'
+    )
+    
+    parser.add_argument(
+        '--no-genius-builtin',
+        action='store_true',
+        help='Disabilita l\'uso delle credenziali Genius integrate'
+    )
+    
+    parser.add_argument(
+        '--include-lyrics-refs',
+        action='store_true',
+        help='Include riferimenti etici ai testi (richiede accesso a Genius)'
+    )
+    
+    parser.add_argument(
         '--search', '-s',
         help='Cerca artisti che corrispondono al nome fornito'
     )
@@ -114,14 +131,31 @@ Esempi di utilizzo:
     setup_logging(log_level)
     logger = logging.getLogger(__name__)
     
-    # API Key Last.fm
+    # API Key Last.fm e Genius
     lastfm_key = args.lastfm_key or os.getenv('LASTFM_API_KEY')
+    genius_token = args.genius_token or os.getenv('GENIUS_TOKEN')
+    use_genius_builtin = not args.no_genius_builtin
+    
+    # Determina se Genius è disponibile
+    has_genius = use_genius_builtin or genius_token is not None
+    
+    # Warning se lyrics sono richieste ma token non disponibile
+    if args.include_lyrics_refs and not has_genius:
+        print("⚠️  Riferimenti testi richiesti ma accesso Genius non disponibile")
+        print("   Opzioni:")
+        print("   - Usa --genius-token TOKEN o imposta GENIUS_TOKEN in .env")
+        print("   - Assicurati che le credenziali integrate siano abilitate (default)")
+        return
     
     try:
         # Modalità ricerca
         if args.search:
             print(f"🔍 Ricerca artisti per: {args.search}")
-            async with DiscographyCrawler(lastfm_api_key=lastfm_key) as crawler:
+            async with DiscographyCrawler(
+                lastfm_api_key=lastfm_key, 
+                genius_token=genius_token,
+                use_genius_builtin=use_genius_builtin
+            ) as crawler:
                 artists = await crawler.search_artists(args.search, args.limit)
                 
                 if not artists:
@@ -146,10 +180,27 @@ Esempi di utilizzo:
         if not args.quiet:
             print(f"🎵 Discography Crawler")
             print(f"🎯 Artista: {args.artist}")
+            
+            # Info sulle fonti
+            sources = ["MusicBrainz"]
+            if lastfm_key:
+                sources.append("Last.fm")
+            if has_genius:
+                sources.append("Genius")
+            print(f"📡 Fonti attive: {', '.join(sources)}")
+            
+            if args.include_lyrics_refs and has_genius:
+                print(f"🔗 Riferimenti testi: ABILITATI (solo metadati etici)")
             print("-" * 50)
         
         # Esegui il crawling
-        discography = await crawl_artist_discography(args.artist, lastfm_key)
+        discography = await crawl_artist_discography(
+            args.artist, 
+            lastfm_key, 
+            genius_token,
+            use_genius_builtin,
+            args.include_lyrics_refs
+        )
         
         if not args.quiet:
             print(f"✅ Crawling completato!")

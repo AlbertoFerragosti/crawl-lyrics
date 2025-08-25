@@ -21,6 +21,10 @@ class Track(BaseModel):
     preview_available: bool = Field(default=False, description="Se è disponibile un'anteprima")
     explicit: bool = Field(default=False, description="Contenuto esplicito")
     
+    # Riferimenti ETICI ai testi (NO testi completi)
+    lyrics_reference: Optional[Dict[str, Any]] = Field(None, description="Riferimento legale ai testi")
+    genius_url: Optional[str] = Field(None, description="Link ufficiale Genius per i testi")
+    
     class Config:
         json_encoders = {
             datetime: lambda v: v.isoformat(),
@@ -105,6 +109,7 @@ class Discography(BaseModel):
     # Metadati di crawling
     crawled_at: datetime = Field(default_factory=datetime.now, description="Timestamp del crawling")
     sources: List[str] = Field(default_factory=list, description="Fonti dei dati")
+    metadata: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Metadati aggiuntivi da fonti esterne")
     
     @property
     def total_albums(self) -> int:
