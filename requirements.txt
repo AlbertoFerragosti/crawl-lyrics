@@ -1,8 +1,4 @@
-requests>=2.31.0
-beautifulsoup4>=4.12.0
-python-dotenv>=1.0.0
-pydantic>=2.5.0
-aiohttp>=3.9.0
-lxml>=4.9.0
-musicbrainzngs>=0.7.1
+# Discography Crawler - Dipendenze Essenziali
+# Solo le librerie necessarie per il sistema unificato
+
 lyricsgenius>=3.0.1

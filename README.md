@@ -1,413 +1,186 @@
-# Music Discography Crawler
+# 🎵 Discography Crawler - Versione Unificata
 
-Un sistema Python professionale per recuperare informazioni sulla discografia degli artisti musicali utilizzando API pubbliche e web scraping etico.
+## 📝 Descrizione
 
-## ⚠️ Disclaimer Copyright
+Questo è lo script unificato e rifatorizzato per il download completo di discografie musicali con testi. Il software è stato semplificato in un **unico entry point** che permette di:
 
-Questo progetto rispetta rigorosamente le leggi sul copyright:
-- ✅ Recupera solo **metadati pubblici** (titoli, anni, nomi album)  
-- ❌ **NON estrae testi completi** delle canzoni
-- ✅ Utilizza **API pubbliche legittime** (MusicBrainz, Last.fm, Genius)
-- ✅ Implementa **rate limiting** per rispettare i servizi
-- ✅ **Solo per scopi educativi/ricerca**
+- 🎤 **Input interattivo**: Chiede all'utente il nome dell'artista da terminale
+- 🎵 **Download completo**: Scarica l'intera discografia con tutti i testi tramite Genius API
+- 📁 **Output timestampato**: Salva tutto in un file `timestamp.nomeartista.json`
+- ✅ **Interfaccia user-friendly**: Guida l'utente passo-passo con feedback visivo
 
-## 🎯 Nuove Funzionalità - Integrazione Genius
+## 🚀 Utilizzo
 
-🎵 **Genius API integrata** per metadati arricchiti:
-- ✅ Informazioni complete su artisti e canzoni
-- ✅ Link ufficiali ai testi (NO testi completi)
-- ✅ Metadati pubblici (popolarità, date di rilascio)
-- ✅ Credenziali integrate per uso immediato
-- ✅ Opzione per token personalizzati
-
-## 🚀 Quick Start
-
+### Avvio rapido
 ```bash
-# Installazione
-pip install -r requirements.txt
-
-# Cerca un artista
-python main.py --search "Radiohead"
-
-# Crawling con Genius integrato
-python main.py "Radiohead" --include-lyrics-refs
-
-# Crawling discografia completa con tutte le fonti
-python main.py "Pink Floyd" --lastfm-key YOUR_API_KEY --include-lyrics-refs --pretty
-
-# Con token Genius personalizzato
-python main.py "Nirvana" --genius-token YOUR_TOKEN --include-lyrics-refs
+python crawl_discography.py
 ```
 
-## ✨ Caratteristiche
+### Flusso interattivo
+1. **Input artista**: Lo script chiede il nome dell'artista
+2. **Conferma ricerca**: Verifica che l'artista sia stato trovato correttamente
+3. **Configurazione download**: Permette di impostare il numero massimo di canzoni
+4. **Conferma finale**: Chiede conferma prima di iniziare il download
+5. **Download progress**: Mostra il progresso del download
+6. **Salvataggio**: Salva automaticamente con nome timestampato
 
-- 🎵 **Discografia completa** per qualsiasi artista
-- 📀 **Metadati dettagliati** su album e tracce
-- 📅 **Date di pubblicazione** e informazioni cronologiche
-- 🎤 **Dati Genius integrati** (popolarità, link testi, metadati)
-- 🔗 **Riferimenti etici ai testi** (NO testi completi)
-- 🚀 **Architettura asincrona** e scalabile
-- 🛡️ **Rate limiting** e gestione errori robusta
-- 📊 **Output JSON strutturato** per analisi
-- 🔍 **Ricerca intelligente** artisti
-- 📈 **Statistiche automatiche** della discografia
-- 🎯 **Multi-fonte**: MusicBrainz + Last.fm + Genius
+### Esempio di utilizzo
+```
+============================================================
+🎵 DISCOGRAPHY CRAWLER - Download Completo Discografie
+============================================================
+💡 Scarica la discografia completa di qualsiasi artista con testi!
+🎯 Powered by Genius API per massima accuratezza
 
-## 📊 Esempio Output
+🎤 Inserisci il nome dell'artista: Radiohead
 
-```json
-{
-  "artist": {
-    "name": "Radiohead",
-    "country": "GB",
-    "begin_date": "1985-01-01",
-    "musicbrainz_id": "a74b1b7f-71a5-4011-9441-d0b5e4122711"
-  },
-  "albums": [
-    {
-      "title": "OK Computer",
-      "release_year": 1997,
-      "album_type": "album",
-      "genre": ["Alternative Rock", "Art Rock"],
-      "tracks": [
-        {
-          "title": "Airbag",
-          "track_number": 1,
-          "duration_ms": 284000
-        }
-      ]
-    }
-  ],
-  "total_albums": 15,
-  "total_tracks": 157,
-  "sources": ["MusicBrainz", "Last.fm"]
-}
+🔍 Cercando 'Radiohead' su Genius...
+✅ Trovato: Radiohead
+
+🚀 Pronto a scaricare la discografia completa di 'Radiohead'
+📊 Numero massimo di canzoni (default 200, premi INVIO): 50
+✅ Confermi il download? (s/n): s
+
+🎵 Inizio download discografia di 'Radiohead'
+📊 Limite massimo: 50 canzoni
+⏱️  Questo potrebbe richiedere alcuni minuti...
+
+✅ Download completato!
+👤 Artista: Radiohead
+🎵 Canzoni scaricate: 50
+
+📋 Prime 10 canzoni trovate:
+   1. Creep
+   2. Karma Police
+   3. No Surprises
+   4. Paranoid Android
+   5. High and Dry
+   6. Just
+   7. Fake Plastic Trees
+   8. Street Spirit (Fade Out)
+   9. 15 Step
+  10. Weird Fishes/Arpeggi
+     ... e altre 40 canzoni
+
+💾 Salvataggio in corso...
+📁 File: 20250825_143022.radiohead.json
+
+✅ Discografia salvata con successo!
+📄 File: C:\bitfortex\dev-projects\crawl-lyrics\20250825_143022.radiohead.json
+📊 Dimensione: 2.45 MB
+
+============================================================
+🎉 DOWNLOAD COMPLETATO!
+============================================================
+👤 Artista: Radiohead
+🎵 Canzoni: 50
+📁 File: 20250825_143022.radiohead.json
+⭐ Canzone più popolare: Creep
+📅 Periodo: 1992 - 2016
+
+💡 Il file contiene:
+   • Testi completi di tutte le canzoni
+   • Metadati dettagliati (date, popolarità, ecc.)
+   • Informazioni sull'artista
+   • Link alle fonti originali
+
+🎯 Usa il file JSON per analisi, ricerche, o altri progetti!
+============================================================
 ```
 
-## 🎤 Integrazione Genius API
+## 📁 Output File Format
 
-### Credenziali Integrate
-Il progetto include credenziali Genius preconfigurate per uso didattico:
-- ✅ **Pronto all'uso** - nessuna configurazione richiesta
-- ✅ **Rate limiting rispettoso** - 60 richieste/minuto
-- ✅ **Solo metadati pubblici** - rispetta copyright
+Il file di output segue il formato: `YYYYMMDD_HHMMSS.nomeartista.json`
 
-### Funzionalità Genius
+Esempi:
+- `20250825_143022.radiohead.json`
+- `20250825_144530.pink_floyd.json`
+- `20250825_150045.the_beatles.json`
+
+## 🔧 Caratteristiche Tecniche
+
+### API Integration
+- **Genius API**: Utilizza credenziali integrate per accesso immediato
+- **LyricsGenius Library**: Sfrutta la libreria ufficiale per massima compatibilità
+- **Rate Limiting**: Rispetta automaticamente i limiti di richiesta (0.5s tra chiamate)
+
+### Gestione Errori
+- ✅ Verifica connessione internet
+- ✅ Validazione input utente
+- ✅ Gestione artisti non trovati
+- ✅ Retry automatico su errori temporanei
+- ✅ Logging dettagliato in `crawler.log`
+
+### Performance Features
+- 🚀 **Configurazione ottimizzata**: Timeout e parametri bilanciati
+- 🎯 **Ordinamento intelligente**: Download per popolarità per avere prima i brani migliori
+- 🔍 **Filtri automatici**: Esclude remix, live, demo automaticamente
+- 💾 **Salvataggio efficiente**: Usa il formato nativo di LyricsGenius
+
+## 🛠️ Requisiti
+
+### Dipendenze Python
 ```bash
-# Usa Genius con credenziali integrate
-python main.py "Nirvana" --include-lyrics-refs
-
-# Con token personalizzato
-python main.py "Radiohead" --genius-token YOUR_TOKEN --include-lyrics-refs
-
-# Disabilita Genius integrato
-python main.py "Queen" --no-genius-builtin
+pip install lyricsgenius>=3.0.1
 ```
 
-### Dati Recuperati da Genius
-- 🎵 **Metadati canzoni**: popolarità, visualizzazioni, date
-- 🔗 **Link ufficiali** ai testi (NO testi completi)
-- 👤 **Info artista**: follower, verifiche, social media
-- 📊 **Statistiche**: canzoni più popolari, collaborazioni
-- 🎯 **Identificazione accurata** di tracce e album
+### Sistema
+- Python 3.7+
+- Connessione internet attiva
+- Spazio su disco (i file possono essere 1-10MB a seconda dell'artista)
 
-### Esempio Output con Genius
-```json
-{
-  "artist": {
-    "name": "Nirvana",
-    "sources": ["MusicBrainz", "Genius"]
-  },
-  "metadata": {
-    "genius": {
-      "name": "Nirvana",
-      "followers_count": 1500000,
-      "verified": true,
-      "total_songs_found": 120,
-      "url": "https://genius.com/artists/Nirvana"
-    }
-  },
-  "albums": [
-    {
-      "title": "Nevermind",
-      "tracks": [
-        {
-          "title": "Smells Like Teen Spirit",
-          "lyrics_reference": {
-            "official_lyrics_url": "https://genius.com/Nirvana-smells-like-teen-spirit-lyrics",
-            "how_to_access": "Visita il link ufficiale per i testi completi",
-            "legal_notice": "I testi sono protetti da copyright"
-          }
-        }
-      ]
-    }
-  ]
-}
-```
+## 🎯 Vantaggi della Rifatorizzazione
 
-## 🛠️ Installazione
+### Prima (codebase complessa)
+- ❌ Multipli file e moduli
+- ❌ Configurazione complessa
+- ❌ CLI con molte opzioni
+- ❌ Dipendenze da multiple API
+- ❌ Setup complicato
 
+### Ora (script unificato)
+- ✅ **Un solo file**: `crawl_discography.py`
+- ✅ **Zero configurazione**: Credenziali integrate
+- ✅ **Interfaccia semplice**: Solo input interattivo
+- ✅ **Focus Genius**: Una sola API, massima affidabilità
+- ✅ **Plug & Play**: Basta un comando
+
+## 🔒 Note Legali
+
+- 📚 **Uso didattico**: Lo script è pensato per scopi educativi e di ricerca
+- 🔗 **Link ufficiali**: Include sempre riferimenti alle fonti originali
+- ⚖️ **Rispetto copyright**: Segue le policy di Genius per l'accesso ai contenuti
+- 🎯 **Fair Use**: Utilizzo responsabile delle API pubbliche
+
+## 🚨 Troubleshooting
+
+### Errore "ModuleNotFoundError: No module named 'lyricsgenius'"
 ```bash
-# Clona il progetto
-git clone [repository-url]
-cd crawl-lyrics
-
-# Crea ambiente virtuale
-python -m venv .venv
-.venv\Scripts\activate  # Windows
-source .venv/bin/activate  # Linux/Mac
-
-# Installa dipendenze
-pip install -r requirements.txt
+pip install lyricsgenius
 ```
 
-## 💻 Utilizzo
+### Errore di rete
+- Verifica connessione internet
+- Riprova dopo alcuni minuti
+- Controlla il file `crawler.log` per dettagli
 
-### CLI Interface
+### Artista non trovato
+- Prova varianti del nome (es. "The Beatles" vs "Beatles")
+- Controlla la grafia
+- Usa nomi in inglese quando possibile
 
-```bash
-# Ricerca artisti
-python main.py --search "Led Zeppelin" --limit 5
+### File non salvato
+- Verifica permessi di scrittura nella directory
+- Assicurati di avere spazio su disco
+- Controlla il log per errori specifici
 
-# Crawling base (solo MusicBrainz)
-python main.py "The Beatles"
+## 📞 Supporto
 
-# Con Genius integrato
-python main.py "Nirvana" --include-lyrics-refs
-
-# Crawling completo (tutte le fonti)
-python main.py "Pink Floyd" --lastfm-key YOUR_API_KEY --include-lyrics-refs --pretty
-
-# Con token Genius personalizzato
-python main.py "Radiohead" --genius-token YOUR_TOKEN --include-lyrics-refs
-
-# Output personalizzato
-python main.py "Queen" --output queen_complete.json --pretty --verbose
-
-# Modalità silenziosa
-python main.py "AC/DC" --quiet
-```
-
-### Uso Programmatico
-
-```python
-import asyncio
-from src.discography_crawler import crawl_artist_discography
-
-async def main():
-    # Crawling con Genius integrato
-    discography = await crawl_artist_discography(
-        "Radiohead",
-        use_genius_builtin=True,
-        include_lyrics_references=True
-    )
-    
-    print(f"Artista: {discography.artist.name}")
-    print(f"Album: {discography.total_albums}")
-    print(f"Tracce: {discography.total_tracks}")
-    print(f"Fonti: {', '.join(discography.sources)}")
-    
-    # Controlla metadati Genius
-    if hasattr(discography, 'metadata') and 'genius' in discography.metadata:
-        genius_data = discography.metadata['genius']
-        print(f"Genius: {genius_data['total_songs_found']} canzoni")
-    
-    # Trova tracce con riferimenti ai testi
-    tracks_with_lyrics = []
-    for album in discography.albums:
-        for track in album.tracks:
-            if hasattr(track, 'lyrics_reference'):
-                tracks_with_lyrics.append(track)
-    
-    print(f"Tracce con riferimenti testi: {len(tracks_with_lyrics)}")
-    
-    # Salva risultati
-    discography.save_to_file("radiohead_genius.json")
-
-asyncio.run(main())
-```
-
-### Demo Genius
-```bash
-# Esegui demo completa
-python examples/genius_demo.py
-```
-
-## 📁 Struttura del Progetto
-
-```
-crawl-lyrics/
-├── src/
-│   ├── models/                 # Modelli dati Pydantic
-│   │   └── discography.py     # Track, Album, Artist, Discography
-│   ├── services/              # Client API
-│   │   ├── musicbrainz_client.py  # API MusicBrainz
-│   │   └── lastfm_client.py   # API Last.fm
-│   ├── crawlers/              # Logica crawling
-│   │   └── base_crawler.py    # Rate limiting, retry, stats
-│   └── discography_crawler.py # Crawler principale
-├── tests/                     # Test unitari e integrazione
-├── examples/                  # Esempi e demo
-│   ├── basic_usage.py        # Esempio completo
-│   └── demo.py              # Demo con dati mock
-├── main.py                   # Interface CLI
-├── requirements.txt
-├── SETUP.md                 # Guida dettagliata
-└── LICENSE
-```
-
-## 🔧 Configurazione Avanzata
-
-### API Last.fm (Raccomandato)
-
-1. **Registrati** su https://www.last.fm/api
-2. **Crea applicazione** e ottieni API key gratuita
-3. **Configura ambiente**:
-
-```bash
-# Copia file di esempio
-cp .env.example .env
-
-# Modifica .env
-LASTFM_API_KEY=your_api_key_here
-RATE_LIMIT_REQUESTS=5
-LOG_LEVEL=INFO
-```
-
-### Rate Limiting
-
-```python
-# Configurazione personalizzata
-crawler = DiscographyCrawler(
-    rate_limit_requests=3,    # 3 richieste
-    rate_limit_window=60,     # per 60 secondi
-    max_retries=5            # 5 tentativi per richiesta
-)
-```
-
-## 🧪 Test ed Esempi
-
-```bash
-# Test completi
-python -m pytest tests/ -v
-
-# Solo test base (veloci)
-python -m pytest tests/test_crawler.py::TestModels -v
-
-# Test di integrazione (richiedono internet)
-python -m pytest tests/ -m integration
-
-# Demo interattivo
-python examples/basic_usage.py
-
-# Demo con dati di esempio
-python examples/demo.py
-```
-
-## 📊 API e Fonti Dati
-
-### MusicBrainz (Principale)
-- 🌍 **Database musicale open source**
-- ✅ **Dati accurati e verificati dalla community**
-- 🆓 **Nessuna registrazione richiesta**
-- ⏱️ **Rate limit: 1 richiesta/secondo**
-- 📚 **Metadati completi su artisti, album, tracce**
-
-### Last.fm (Opzionale)
-- 🎯 **Informazioni aggiuntive su generi musicali**
-- 📈 **Statistiche di popolarità**
-- 🆓 **API key gratuita richiesta**
-- 🎨 **Arricchisce i dati MusicBrainz**
-
-## 📈 Funzionalità Analitiche
-
-```python
-# Statistiche automatiche
-print(f"Periodo attività: {discography.discography_span}")
-print(f"Album per tipo: {discography.get_albums_by_type()}")
-print(f"Produzione per anno: {discography.get_albums_by_year()}")
-
-# Durata totale discografia
-total_duration = sum(album.total_duration_ms for album in discography.albums)
-print(f"Durata totale: {total_duration / 3600000:.1f} ore")
-```
-
-## ⚖️ Note Legali e Etiche
-
-### ✅ Conformità Copyright
-- **Solo metadati pubblici**: titoli, date, durate
-- **Nessun contenuto protetto**: no testi, no audio
-- **API legittime**: MusicBrainz, Last.fm
-- **Rate limiting**: rispetto dei termini di servizio
-
-### 🎯 Casi d'Uso Legittimi
-- 📚 **Ricerca accademica** sulla musica
-- 📊 **Analisi statistiche** di mercato
-- 🤖 **Sistemi di raccomandazione**
-- 📱 **App di catalogazione** personale
-- 📈 **Business intelligence** musicale
-
-## 🚨 Limitazioni Importanti
-
-1. **NO testi delle canzoni** (copyright protetti)
-2. **Dipende dalla qualità dei dati** delle API pubbliche
-3. **Rate limiting** può rallentare crawling massivi
-4. **Alcuni artisti** potrebbero avere dati limitati
-5. **Solo per uso educativo/ricerca**
-
-## 🛠️ Troubleshooting
-
-### Problemi Comuni
-
-**Nessun album trovato:**
-```bash
-# Prova varianti del nome
-python main.py --search "Beatles" --limit 10
-python main.py "The Beatles"  # Usa il nome esatto
-```
-
-**Errori di connessione:**
-```bash
-# Modalità verbose per debug
-python main.py "Artista" --verbose
-
-# Controlla log
-cat crawler.log
-```
-
-**Rate limit errors:**
-- Il sistema gestisce automaticamente
-- Configura rate più conservativo in `.env`
-
-## 🤝 Contribuire
-
-1. **Fork** del repository
-2. **Crea branch** per feature: `git checkout -b feature/nome`
-3. **Commit** modifiche: `git commit -m 'Aggiunge feature'`
-4. **Push** branch: `git push origin feature/nome`
-5. **Apri Pull Request**
-
-### Aree di Miglioramento
-- 🔌 **Nuovi provider** di dati musicali
-- 🎨 **Frontend web** per il crawler
-- 📊 **Visualizzazioni** avanzate
-- 🌐 **API REST** wrapper
-- 🚀 **Performance** ottimizzazioni
-
-## 📄 Licenza
-
-MIT License - Vedi [LICENSE](LICENSE) per dettagli completi.
-
-**Importante**: Questo software è progettato per rispettare rigorosamente le leggi sul copyright. Gli utenti sono responsabili dell'uso appropriato.
+Per problemi o domande, controlla:
+1. Il file `crawler.log` per errori dettagliati
+2. La connessione internet
+3. I requisiti di sistema
 
 ---
 
-## 💡 Ispirazione e Crediti
-
-- 🎵 **MusicBrainz Project** - Database musicale open source
-- 🔴 **Last.fm** - Statistiche e metadati musicali  
-- 🐍 **Python Community** - Librerie fantastiche
-- 📚 **Pydantic** - Validazione dati robusta
-- ⚡ **aiohttp** - HTTP asincrono
-
-**Happy Crawling! 🎵🚀**
+**🎵 Buon download delle tue discografie preferite!**
