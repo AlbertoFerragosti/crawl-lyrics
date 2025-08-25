@@ -9,7 +9,37 @@ Questo è lo script unificato e rifatorizzato per il download completo di discog
 - 📁 **Output timestampato**: Salva tutto in un file `timestamp.nomeartista.json`
 - ✅ **Interfaccia user-friendly**: Guida l'utente passo-passo con feedback visivo
 
-## 🚀 Utilizzo
+## � Configurazione
+
+### 1. Clona il repository
+```bash
+git clone https://github.com/AlbertoFerragosti/crawl-lyrics.git
+cd crawl-lyrics
+```
+
+### 2. Installa le dipendenze
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Configura le credenziali API
+1. Copia il file di esempio:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Ottieni le credenziali da [Genius API](https://genius.com/api-clients)
+
+3. Modifica il file `.env` inserendo le tue credenziali:
+   ```env
+   GENIUS_CLIENT_ID=tuo_client_id_qui
+   GENIUS_CLIENT_SECRET=tuo_client_secret_qui  
+   GENIUS_ACCESS_TOKEN=tuo_access_token_qui
+   ```
+
+⚠️ **IMPORTANTE**: Non condividere mai il file `.env` - è già incluso nel `.gitignore`
+
+## �🚀 Utilizzo
 
 ### Avvio rapido
 ```bash

@@ -2,3 +2,4 @@
 # Solo le librerie necessarie per il sistema unificato
 
 lyricsgenius>=3.0.1
+python-dotenv>=1.0.0

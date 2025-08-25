@@ -15,17 +15,45 @@ import time
 import re
 import sys
 import logging
+import os
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 from lyricsgenius import Genius
+from dotenv import load_dotenv
 
-# Configurazione Genius API integrata
-GENIUS_CONFIG = {
-    'client_id': 'zPwicLU4TnfKE-O8YL7O8U6Rc40MGePoR5k8pTQG_LijOMWVnAbjCDBQT1Kgz22w',
-    'client_secret': 'g1VtZNBTj4lVsElMkW8OankwxK7RqKNZOBGeZvijwLIMqEg5qBf3QIiR4tSPsxIctZOMs-HCzfQ50j9kHpHQuw',
-    'access_token': '2myLsXND-Qngtcqve_5SnrSv5cYb1vg8A9062VkOqQIGg59XVxkNujtmSOID5lNB'
-}
+# Carica le variabili d'ambiente dal file .env
+load_dotenv()
+
+def get_genius_config() -> Dict[str, str]:
+    """
+    Carica la configurazione Genius API dalle variabili d'ambiente.
+    
+    Returns:
+        Dict contenente le credenziali API
+        
+    Raises:
+        SystemExit: Se le credenziali non sono configurate
+    """
+    config = {
+        'client_id': os.getenv('GENIUS_CLIENT_ID'),
+        'client_secret': os.getenv('GENIUS_CLIENT_SECRET'),
+        'access_token': os.getenv('GENIUS_ACCESS_TOKEN')
+    }
+    
+    # Verifica che tutte le credenziali siano presenti
+    missing_keys = [key for key, value in config.items() if not value]
+    if missing_keys:
+        print("❌ ERRORE: Credenziali API mancanti!")
+        print(f"   Chiavi mancanti nel file .env: {', '.join(missing_keys)}")
+        print("\n💡 Crea un file .env nella directory del progetto con:")
+        print("   GENIUS_CLIENT_ID=tuo_client_id")
+        print("   GENIUS_CLIENT_SECRET=tuo_client_secret")
+        print("   GENIUS_ACCESS_TOKEN=tuo_access_token")
+        print("\n🔒 IMPORTANTE: Non condividere mai il file .env!")
+        sys.exit(1)
+    
+    return config
 
 class DiscographyDownloader:
     """
@@ -271,8 +299,11 @@ def main():
     Funzione principale - Entry point unico del programma.
     """
     try:
-        # Inizializza il downloader con le credenziali integrate
-        downloader = DiscographyDownloader(GENIUS_CONFIG['access_token'])
+        # Carica configurazione dalle variabili d'ambiente
+        genius_config = get_genius_config()
+        
+        # Inizializza il downloader con le credenziali dal file .env
+        downloader = DiscographyDownloader(genius_config['access_token'])
         
         # Interfaccia interattiva per scegliere l'artista
         artist_name = downloader.search_artist_interactive()
